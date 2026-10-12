@@ -1,0 +1,330 @@
+<!-- Handoff: Created standalone BMI calculator HTML with input validation and quick preset test buttons; open directly in any browser; ready to use. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMI Calculator</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --text: #2d3748;
+      --text-muted: #718096;
+      --primary: #3182ce;
+      --primary-hover: #2b6cb0;
+      --error-bg: #fed7d7;
+      --error-text: #9b2c2c;
+      --underweight: #3182ce;
+      --normal: #38a169;
+      --overweight: #dd6b20;
+      --obese: #e53e3e;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 440px;
+      padding: 32px 28px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+      color: #1a202c;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    button {
+      flex: 1;
+      padding: 11px 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: #edf2f7;
+      color: #4a5568;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e2e8f0;
+    }
+
+    .error-box {
+      margin-top: 18px;
+      padding: 12px 14px;
+      background-color: var(--error-bg);
+      color: var(--error-text);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .result-box {
+      margin-top: 24px;
+      padding: 20px;
+      background: #f7fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-align: center;
+      display: none;
+    }
+
+    .result-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .bmi-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .category-underweight { background-color: var(--underweight); }
+    .category-normal { background-color: var(--normal); }
+    .category-overweight { background-color: var(--overweight); }
+    .category-obese { background-color: var(--obese); }
+
+    .test-cases {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .test-cases-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .chip {
+      background: #edf2f7;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #4a5568;
+    }
+
+    .chip:hover {
+      background: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>BMI Calculator</h1>
+    <p class="subtitle">Enter your weight and height to calculate your Body Mass Index</p>
+
+    <form id="bmi-form" onsubmit="calculateBMI(event)">
+      <div class="form-group">
+        <label for="weight">Weight (kg)</label>
+        <input type="number" id="weight" step="any" placeholder="e.g. 70" required />
+      </div>
+
+      <div class="form-group">
+        <label for="height">Height (cm)</label>
+        <input type="number" id="height" step="any" placeholder="e.g. 170" required />
+      </div>
+
+      <div class="btn-group">
+        <button type="submit" class="btn-primary">Calculate</button>
+        <button type="button" class="btn-secondary" onclick="resetForm()">Reset</button>
+      </div>
+    </form>
+
+    <div id="error-message" class="error-box" role="alert"></div>
+
+    <div id="result-box" class="result-box" aria-live="polite">
+      <div class="result-label">Your Calculated BMI</div>
+      <div id="bmi-value" class="bmi-value">--</div>
+      <div id="category-badge" class="category-badge">--</div>
+    </div>
+
+    <div class="test-cases">
+      <div class="test-cases-title">Quick Test Presets:</div>
+      <div class="chips">
+        <button type="button" class="chip" onclick="fillPreset(70, 170)">70kg / 170cm</button>
+        <button type="button" class="chip" onclick="fillPreset(50, 160)">50kg / 160cm</button>
+        <button type="button" class="chip" onclick="fillPreset(90, 175)">90kg / 175cm</button>
+        <button type="button" class="chip" onclick="fillPreset(-5, 170)">Invalid (-5kg)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calculateBMI(e) {
+      if (e) e.preventDefault();
+
+      const weightInput = document.getElementById('weight').value.trim();
+      const heightInput = document.getElementById('height').value.trim();
+      const errorDiv = document.getElementById('error-message');
+      const resultBox = document.getElementById('result-box');
+
+      errorDiv.style.display = 'none';
+      errorDiv.textContent = '';
+      resultBox.style.display = 'none';
+
+      const weight = parseFloat(weightInput);
+      const height = parseFloat(heightInput);
+
+      if (weightInput === '' || heightInput === '' || isNaN(weight) || isNaN(height)) {
+        showError('Please enter valid numerical values for both weight and height.');
+        return;
+      }
+
+      if (weight <= 0 || height <= 0) {
+        showError('Weight and height must be greater than zero.');
+        return;
+      }
+
+      const heightM = height / 100;
+      const bmi = weight / (heightM * heightM);
+      const roundedBmi = parseFloat(bmi.toFixed(1));
+
+      let category = '';
+      let badgeClass = '';
+
+      if (roundedBmi < 18.5) {
+        category = 'Underweight';
+        badgeClass = 'category-underweight';
+      } else if (roundedBmi <= 24.9) {
+        category = 'Normal weight';
+        badgeClass = 'category-normal';
+      } else if (roundedBmi <= 29.9) {
+        category = 'Overweight';
+        badgeClass = 'category-overweight';
+      } else {
+        category = 'Obese';
+        badgeClass = 'category-obese';
+      }
+
+      document.getElementById('bmi-value').textContent = roundedBmi.toFixed(1);
+      const badge = document.getElementById('category-badge');
+      badge.textContent = category;
+      badge.className = 'category-badge ' + badgeClass;
+
+      resultBox.style.display = 'block';
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+    }
+
+    function resetForm() {
+      document.getElementById('bmi-form').reset();
+      document.getElementById('error-message').style.display = 'none';
+      document.getElementById('result-box').style.display = 'none';
+    }
+
+    function fillPreset(weight, height) {
+      document.getElementById('weight').value = weight;
+      document.getElementById('height').value = height;
+      calculateBMI();
+    }
+  </script>
+</body>
+</html>
