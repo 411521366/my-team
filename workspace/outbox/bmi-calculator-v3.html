@@ -1,0 +1,493 @@
+<!-- Handoff: Created v3 with instant zh-TW / EN language toggle, localStorage persistence, and dynamic translation of active results/errors; ready to use. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BMI Calculator</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --text: #2d3748;
+      --text-muted: #718096;
+      --primary: #3182ce;
+      --primary-hover: #2b6cb0;
+      --error-bg: #fed7d7;
+      --error-text: #9b2c2c;
+      --underweight: #3182ce;
+      --normal: #38a169;
+      --overweight: #dd6b20;
+      --obese: #e53e3e;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 440px;
+      padding: 28px 26px;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      background: #edf2f7;
+      border-radius: 20px;
+      padding: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .lang-btn {
+      background: none;
+      border: none;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .lang-btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+      color: #1a202c;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 11px 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn-action:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background-color: #edf2f7;
+      color: #4a5568;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e2e8f0;
+    }
+
+    .error-box {
+      margin-top: 18px;
+      padding: 12px 14px;
+      background-color: var(--error-bg);
+      color: var(--error-text);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .result-box {
+      margin-top: 24px;
+      padding: 20px;
+      background: #f7fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-align: center;
+      display: none;
+    }
+
+    .result-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .bmi-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .category-underweight { background-color: var(--underweight); }
+    .category-normal { background-color: var(--normal); }
+    .category-overweight { background-color: var(--overweight); }
+    .category-obese { background-color: var(--obese); }
+
+    .test-cases {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .test-cases-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .chip {
+      background: #edf2f7;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #4a5568;
+    }
+
+    .chip:hover {
+      background: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-bar">
+      <div class="lang-switch" role="group" aria-label="Language selection">
+        <button type="button" id="btn-lang-zhtw" class="lang-btn" onclick="setLanguage('zh-TW')">繁中</button>
+        <button type="button" id="btn-lang-en" class="lang-btn active" onclick="setLanguage('en')">EN</button>
+      </div>
+    </div>
+
+    <h1 id="ui-title">BMI Calculator</h1>
+    <p id="ui-subtitle" class="subtitle">Enter your weight and height to calculate your Body Mass Index</p>
+
+    <form id="bmi-form" onsubmit="calculateBMI(event)" novalidate>
+      <div class="form-group">
+        <label id="ui-label-weight" for="weight">Weight (kg)</label>
+        <input type="number" id="weight" step="any" placeholder="e.g. 70" />
+      </div>
+
+      <div class="form-group">
+        <label id="ui-label-height" for="height">Height (cm)</label>
+        <input type="number" id="height" step="any" placeholder="e.g. 170" />
+      </div>
+
+      <div class="btn-group">
+        <button type="submit" id="ui-btn-calc" class="btn-action btn-primary">Calculate</button>
+        <button type="button" id="ui-btn-reset" class="btn-action btn-secondary" onclick="resetForm()">Reset</button>
+      </div>
+    </form>
+
+    <div id="error-message" class="error-box" role="alert"></div>
+
+    <div id="result-box" class="result-box" aria-live="polite">
+      <div id="ui-result-label" class="result-label">Your Calculated BMI</div>
+      <div id="bmi-value" class="bmi-value">--</div>
+      <div id="category-badge" class="category-badge">--</div>
+    </div>
+
+    <div class="test-cases">
+      <div id="ui-test-title" class="test-cases-title">Quick Test Presets:</div>
+      <div class="chips">
+        <button type="button" class="chip" onclick="fillPreset(70, 170)">70kg / 170cm</button>
+        <button type="button" class="chip" onclick="fillPreset(50, 160)">50kg / 160cm</button>
+        <button type="button" class="chip" onclick="fillPreset(90, 175)">90kg / 175cm</button>
+        <button type="button" class="chip" onclick="fillPreset(52.73, 169)">Boundary 18.46 (52.73kg/169cm)</button>
+        <button type="button" class="chip" onclick="fillPreset('', '')">Empty Submit</button>
+        <button type="button" class="chip" onclick="fillPreset(-5, 170)">Invalid (-5kg)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const i18n = {
+      'en': {
+        title: 'BMI Calculator',
+        subtitle: 'Enter your weight and height to calculate your Body Mass Index',
+        weightLabel: 'Weight (kg)',
+        heightLabel: 'Height (cm)',
+        weightPlaceholder: 'e.g. 70',
+        heightPlaceholder: 'e.g. 170',
+        btnCalc: 'Calculate',
+        btnReset: 'Reset',
+        resultLabel: 'Your Calculated BMI',
+        categories: {
+          underweight: 'Underweight',
+          normal: 'Normal weight',
+          overweight: 'Overweight',
+          obese: 'Obese'
+        },
+        errorInvalid: 'Please enter valid numerical values for both weight and height.',
+        errorZeroNegative: 'Weight and height must be greater than zero.',
+        testTitle: 'Quick Test Presets:'
+      },
+      'zh-TW': {
+        title: 'BMI 計算機',
+        subtitle: '輸入體重與身高，計算你的身體質量指數',
+        weightLabel: '體重（公斤）',
+        heightLabel: '身高（公分）',
+        weightPlaceholder: '例如 70',
+        heightPlaceholder: '例如 170',
+        btnCalc: '計算',
+        btnReset: '重設',
+        resultLabel: '你的 BMI',
+        categories: {
+          underweight: '過輕',
+          normal: '正常',
+          overweight: '過重',
+          obese: '肥胖'
+        },
+        errorInvalid: '請輸入有效的體重與身高數值。',
+        errorZeroNegative: '體重與身高必須大於零。',
+        testTitle: '快速測試：'
+      }
+    };
+
+    let currentLang = 'en';
+    let currentCategoryKey = null;
+    let currentErrorCode = null; // 'invalid' | 'zero_negative' | null
+
+    function setLanguage(lang) {
+      if (!i18n[lang]) return;
+      currentLang = lang;
+      localStorage.setItem('bmi_lang', lang);
+      document.documentElement.lang = lang;
+
+      // Update switcher active states
+      const btnEn = document.getElementById('btn-lang-en');
+      const btnZh = document.getElementById('btn-lang-zhtw');
+      if (lang === 'zh-TW') {
+        btnZh.classList.add('active');
+        btnZh.setAttribute('aria-pressed', 'true');
+        btnEn.classList.remove('active');
+        btnEn.setAttribute('aria-pressed', 'false');
+      } else {
+        btnEn.classList.add('active');
+        btnEn.setAttribute('aria-pressed', 'true');
+        btnZh.classList.remove('active');
+        btnZh.setAttribute('aria-pressed', 'false');
+      }
+
+      // Translate static strings
+      const strings = i18n[lang];
+      document.title = strings.title;
+      document.getElementById('ui-title').textContent = strings.title;
+      document.getElementById('ui-subtitle').textContent = strings.subtitle;
+      document.getElementById('ui-label-weight').textContent = strings.weightLabel;
+      document.getElementById('ui-label-height').textContent = strings.heightLabel;
+      document.getElementById('weight').placeholder = strings.weightPlaceholder;
+      document.getElementById('height').placeholder = strings.heightPlaceholder;
+      document.getElementById('ui-btn-calc').textContent = strings.btnCalc;
+      document.getElementById('ui-btn-reset').textContent = strings.btnReset;
+      document.getElementById('ui-result-label').textContent = strings.resultLabel;
+      document.getElementById('ui-test-title').textContent = strings.testTitle;
+
+      // Translate active error if shown
+      if (currentErrorCode) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.textContent = currentErrorCode === 'zero_negative'
+          ? strings.errorZeroNegative
+          : strings.errorInvalid;
+      }
+
+      // Translate active category badge if shown
+      if (currentCategoryKey) {
+        document.getElementById('category-badge').textContent = strings.categories[currentCategoryKey];
+      }
+    }
+
+    function calculateBMI(e) {
+      if (e) e.preventDefault();
+
+      const weightInput = document.getElementById('weight').value.trim();
+      const heightInput = document.getElementById('height').value.trim();
+      const errorDiv = document.getElementById('error-message');
+      const resultBox = document.getElementById('result-box');
+
+      errorDiv.style.display = 'none';
+      errorDiv.textContent = '';
+      resultBox.style.display = 'none';
+      currentErrorCode = null;
+
+      // Validation 1: empty or non-numeric
+      if (weightInput === '' || heightInput === '') {
+        showError('invalid');
+        return;
+      }
+
+      const weight = parseFloat(weightInput);
+      const height = parseFloat(heightInput);
+
+      if (isNaN(weight) || isNaN(height)) {
+        showError('invalid');
+        return;
+      }
+
+      // Validation 2: zero or negative
+      if (weight <= 0 || height <= 0) {
+        showError('zero_negative');
+        return;
+      }
+
+      const heightM = height / 100;
+      const bmi = weight / (heightM * heightM);
+      const roundedBmi = bmi.toFixed(1);
+
+      // Raw BMI categorization
+      let badgeClass = '';
+      if (bmi < 18.5) {
+        currentCategoryKey = 'underweight';
+        badgeClass = 'category-underweight';
+      } else if (bmi < 25.0) {
+        currentCategoryKey = 'normal';
+        badgeClass = 'category-normal';
+      } else if (bmi < 30.0) {
+        currentCategoryKey = 'overweight';
+        badgeClass = 'category-overweight';
+      } else {
+        currentCategoryKey = 'obese';
+        badgeClass = 'category-obese';
+      }
+
+      document.getElementById('bmi-value').textContent = roundedBmi;
+      const badge = document.getElementById('category-badge');
+      badge.textContent = i18n[currentLang].categories[currentCategoryKey];
+      badge.className = 'category-badge ' + badgeClass;
+
+      resultBox.style.display = 'block';
+    }
+
+    function showError(code) {
+      currentErrorCode = code;
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = code === 'zero_negative'
+        ? i18n[currentLang].errorZeroNegative
+        : i18n[currentLang].errorInvalid;
+      errorDiv.style.display = 'block';
+    }
+
+    function resetForm() {
+      document.getElementById('bmi-form').reset();
+      document.getElementById('error-message').style.display = 'none';
+      document.getElementById('result-box').style.display = 'none';
+      currentCategoryKey = null;
+      currentErrorCode = null;
+    }
+
+    function fillPreset(weight, height) {
+      document.getElementById('weight').value = weight;
+      document.getElementById('height').value = height;
+      calculateBMI();
+    }
+
+    // Initialize language from localStorage or default to 'en'
+    (function init() {
+      const savedLang = localStorage.getItem('bmi_lang');
+      const initialLang = (savedLang === 'zh-TW' || savedLang === 'en') ? savedLang : 'en';
+      setLanguage(initialLang);
+    })();
+  </script>
+</body>
+</html>
